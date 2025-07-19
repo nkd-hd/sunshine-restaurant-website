@@ -44,3 +44,12 @@ yarn-error.log*
 
 # idea files
 .idea
+
+# Large files and archives
+*.zip
+*.tar.gz
+google-cloud-sdk/
+node_modules/
+Group_1.zip
+event-booking-system-cicd-pipeline.zip
+updates.tar.gz
