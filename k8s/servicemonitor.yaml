@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: event-booking-app-monitor
+  namespace: event-booking-system
+  labels:
+    app: event-booking-app
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: event-booking-app
+  endpoints:
+  - port: http
+    path: /api/metrics
+    interval: 30s
+    scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+    - event-booking-system

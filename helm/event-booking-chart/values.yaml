@@ -1,0 +1,103 @@
+# Default values for event-booking-chart.
+replicaCount: 3
+
+image:
+  repository: nkdhd/event-booking-app
+  pullPolicy: IfNotPresent
+  tag: "multi-arch"
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  hosts:
+    - host: event-booking.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Application configuration
+config:
+  nodeEnv: "production"
+  port: "3000"
+  hostname: "0.0.0.0"
+  nextTelemetryDisabled: "1"
+  skipEnvValidation: "1"
+
+# Secrets (these should be base64 encoded)
+secrets:
+  databaseUrl: "bXlzcWw6Ly91c2VyOnBhc3N3b3JkQG15c3FsLXNlcnZpY2U6MzMwNi9ldmVudGJvb2tpbmc="
+  authSecret: "eW91ci1hdXRoLXNlY3JldC1rZXktaGVyZQ=="
+
+# MySQL configuration
+mysql:
+  enabled: true
+  image:
+    repository: mysql
+    tag: "8.0"
+  database: "eventbooking"
+  user: "user"
+  password: "userpassword"
+  rootPassword: "rootpassword"
+  
+  persistence:
+    enabled: true
+    size: 5Gi
+    
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+# Monitoring
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    path: /api/metrics

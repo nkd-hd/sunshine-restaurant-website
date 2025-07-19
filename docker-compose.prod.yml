@@ -1,0 +1,57 @@
+version: '3.8'
+
+# Production override for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  mysql:
+    # Production MySQL configuration
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-secure-root-password-change-me}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-event_booking}
+      MYSQL_USER: ${MYSQL_USER:-app_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-secure-app-password-change-me}
+    volumes:
+      # Use named volume for production data persistence
+      - mysql_prod_data:/var/lib/mysql
+      - ./scripts:/docker-entrypoint-initdb.d
+    # Remove port mapping for security (only accessible from app container)
+    ports: []
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --innodb-buffer-pool-size=256M
+      --max-connections=100
+      --query-cache-type=1
+      --query-cache-size=64M
+
+  app:
+    # Use pre-built image in production
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    image: ${DOCKER_REGISTRY:-}event-booking-system:${IMAGE_TAG:-latest}
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mysql://${MYSQL_USER:-app_user}:${MYSQL_PASSWORD:-secure-app-password-change-me}@mysql:3306/${MYSQL_DATABASE:-event_booking}
+      - AUTH_SECRET=${AUTH_SECRET:-your-super-secret-auth-secret-change-in-production}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://your-domain.com}
+      - SKIP_ENV_VALIDATION=1
+      - NEXT_TELEMETRY_DISABLED=1
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    # Remove volume mount for uploads in production (use cloud storage)
+    volumes: []
+
+volumes:
+  mysql_prod_data:
+    driver: local

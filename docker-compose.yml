@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: event-booking-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: event_booking
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts:/docker-entrypoint-initdb.d
+    networks:
+      - event-booking-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Event Booking Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: event-booking-system:latest
+    container_name: event-booking-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mysql://app_user:app_password@mysql:3306/event_booking
+      - AUTH_SECRET=your-super-secret-auth-secret-change-in-production
+      - NEXTAUTH_URL=http://localhost:3000
+      - SKIP_ENV_VALIDATION=1
+      - NEXT_TELEMETRY_DISABLED=1
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - event-booking-network
+    volumes:
+      - ./public/uploads:/app/public/uploads
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  mysql_data:
+
+networks:
+  event-booking-network:
+    driver: bridge
