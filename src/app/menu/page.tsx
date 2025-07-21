@@ -1,41 +1,106 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "convex/react";
 import Link from "next/link";
 import { api } from "../../../convex/_generated/api";
 import MainLayout from "~/components/layout/main-layout";
-import { Search, ChefHat, ShoppingCart, Truck, Clock, Users, Gift } from "lucide-react"
+import { Search, ChefHat, ShoppingCart, Truck, Clock, Users, Gift, Loader2 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { GlassMealCard } from "~/components/ui/glass-meal-card"
 import { MealCardSkeletonGrid } from "~/components/ui/meal-card-skeleton"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import { toast } from "sonner"
+import { memoryOptimization } from "~/lib/performance"
 
 type OrderType = "delivery" | "pickup" | "dine-in" | "catering"
 
 export default function MenuPage() {
-  const meals = useQuery(api.meals.getAllMeals, {});
-  // Also try to get meals with explicit available filter
-  const availableMeals = useQuery(api.meals.getAllMeals, { isAvailable: "AVAILABLE" });
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedOrderType, setSelectedOrderType] = useState<OrderType>("delivery");
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { data: session } = useSession();
 
-  // Filter meals by search term only
-  const filteredMeals = meals?.filter(meal => {
-    const matchesSearch = meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         meal.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
-  });
+  // Debounced search to reduce API calls
+  const debouncedSearch = useMemo(
+    () => memoryOptimization.debounce((term: string) => {
+      setDebouncedSearchTerm(term);
+    }, 300),
+    []
+  );
 
-  const handleAddToCart = (mealId: string) => {
-    // TODO: Implement add to cart functionality
+  // Trigger debounced search when searchTerm changes
+  useMemo(() => {
+    debouncedSearch(searchTerm);
+  }, [searchTerm, debouncedSearch]);
+
+  // Optimized query with pagination and search
+  const mealsQuery = useQuery(
+    api.meals.getAllMeals, 
+    {
+      isAvailable: "AVAILABLE",
+      limit: 24, // Load 24 items per page
+      searchTerm: debouncedSearchTerm || undefined,
+    }
+  );
+
+  // Memoize filtered meals to avoid recalculation
+  const displayedMeals = useMemo(() => {
+    if (!mealsQuery?.meals) return [];
+    return mealsQuery.meals;
+  }, [mealsQuery?.meals]);
+
+  // Optimized add to cart handler
+  const handleAddToCart = useCallback((mealId: string) => {
+    // TODO: Implement actual add to cart functionality with Convex mutation
     toast.success("Added to cart!", {
-      description: "Item has been added to your cart."
+      description: "Item has been added to your cart.",
+      duration: 2000,
     });
-  };
+  }, []);
+
+  // Handle loading more meals
+  const handleLoadMore = useCallback(async () => {
+    if (!mealsQuery?.hasMore || isLoadingMore) return;
+    
+    setIsLoadingMore(true);
+    // TODO: Implement load more with cursor pagination
+    setTimeout(() => setIsLoadingMore(false), 1000);
+  }, [mealsQuery?.hasMore, isLoadingMore]);
+
+  // Memoize order type buttons to avoid re-renders
+  const orderTypeButtons = useMemo(() => [
+    {
+      type: "delivery" as OrderType,
+      icon: Truck,
+      title: "Delivery",
+      description: "Fast delivery to your door",
+      features: ["• Free delivery", "• 30-45 min"]
+    },
+    {
+      type: "pickup" as OrderType,
+      icon: Clock,
+      title: "Pickup",
+      description: "Collect from our restaurant",
+      features: ["• Ready in 15-20 min", "• No delivery fee"]
+    },
+    {
+      type: "dine-in" as OrderType,
+      icon: Users,
+      title: "Dine-in",
+      description: "Enjoy at our restaurant",
+      features: ["• Full table service", "• Great atmosphere"]
+    },
+    {
+      type: "catering" as OrderType,
+      icon: Gift,
+      title: "Catering",
+      description: "Large orders for events",
+      features: ["• Min. 10 people", "• Advance booking"]
+    }
+  ], []);
 
   return (
     <MainLayout>
@@ -160,53 +225,79 @@ export default function MenuPage() {
         {/* Menu Content Section - On wooden background */}
         <section className="py-12 sm:py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            {/* Simple Search Bar (Optional - only if more than 10 dishes) */}
-            {meals && meals.length > 10 && (
-              <div className="mb-12 max-w-md mx-auto">
-                <div className="glass-card p-1">
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-leafy-green-900/60" />
-                    <Input
-                      type="text"
-                      placeholder="Search dishes…"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 bg-white/80 border-0 rounded-lg text-wooden-brown placeholder-leafy-green-900/60 focus:ring-2 focus:ring-leafy-green-900/50 transition-all"
-                    />
-                  </div>
+            {/* Search Bar - Always show for better UX */}
+            <div className="mb-12 max-w-md mx-auto">
+              <div className="glass-card p-1">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-leafy-green-900/60" />
+                  <Input
+                    type="text"
+                    placeholder="Search dishes…"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-white/80 border-0 rounded-lg text-wooden-brown placeholder-leafy-green-900/60 focus:ring-2 focus:ring-leafy-green-900/50 transition-all"
+                  />
+                  {debouncedSearchTerm && debouncedSearchTerm !== searchTerm && (
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                      <Loader2 className="w-4 h-4 animate-spin text-leafy-green-900/60" />
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Debug info - remove in production */}
-            {process.env.NODE_ENV === 'development' && (
+            {process.env.NODE_ENV === 'development' && mealsQuery && (
               <div className="mb-4 text-center">
                 <div className="text-wooden-brown/60 text-sm">
-                  Meals: {meals === undefined ? 'Loading...' : `${meals.length} loaded`}
-                  {filteredMeals && ` | Filtered: ${filteredMeals.length}`}
+                  Meals: {mealsQuery === undefined ? 'Loading...' : `${displayedMeals.length} loaded`}
+                  {mealsQuery.hasMore && ' | More available'}
+                  {debouncedSearchTerm && ` | Search: "${debouncedSearchTerm}"`}
                 </div>
               </div>
             )}
 
             {/* Menu Cards Grid */}
-            {meals === undefined ? (
+            {mealsQuery === undefined ? (
               <div className="flex justify-center items-center py-20">
                 <div className="glass-card p-8 text-center">
-                  <div className="animate-spin w-8 h-8 border-2 border-wooden-brown/30 border-t-wooden-brown rounded-full mx-auto mb-4"></div>
+                  <Loader2 className="w-8 h-8 animate-spin text-wooden-brown mx-auto mb-4" />
                   <div className="text-wooden-brown/60">Loading delicious dishes...</div>
                 </div>
               </div>
-            ) : filteredMeals && filteredMeals.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
-                {filteredMeals.map((meal) => (
-                  <GlassMealCard
-                    key={meal._id}
-                    meal={meal}
-                    onAddToCart={handleAddToCart}
-                    className="w-full max-w-sm"
-                  />
-                ))}
-              </div>
+            ) : displayedMeals && displayedMeals.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 justify-items-center px-2 sm:px-0">
+                  {displayedMeals.map((meal) => (
+                    <GlassMealCard
+                      key={meal._id}
+                      meal={meal}
+                      onAddToCart={handleAddToCart}
+                      className="w-full max-w-sm"
+                    />
+                  ))}
+                </div>
+                
+                {/* Load More Button */}
+                {mealsQuery.hasMore && (
+                  <div className="mt-12 text-center">
+                    <Button
+                      onClick={handleLoadMore}
+                      disabled={isLoadingMore}
+                      className="bg-leafy-green-900 hover:bg-leafy-green-800 text-white px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                    >
+                      {isLoadingMore ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          Loading More...
+                        </>
+                      ) : (
+                        'Load More Dishes'
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-20">
                 <div className="glass-card p-12 mx-auto max-w-md">
@@ -214,17 +305,20 @@ export default function MenuPage() {
                     <ChefHat className="w-12 h-12 text-wooden-brown/60" />
                   </div>
                   <h3 className="text-xl font-bold text-wooden-brown mb-4">
-                    {searchTerm ? "No dishes found" : "No dishes available"}
+                    {debouncedSearchTerm ? "No dishes found" : "No dishes available"}
                   </h3>
                   <p className="text-wooden-brown/80 mb-6">
-                    {searchTerm 
-                      ? `No results for "${searchTerm}". Try different keywords.`
+                    {debouncedSearchTerm 
+                      ? `No results for "${debouncedSearchTerm}". Try different keywords.`
                       : "Check back soon for delicious West African dishes!"
                     }
                   </p>
-                  {searchTerm && (
+                  {debouncedSearchTerm && (
                     <Button
-                      onClick={() => setSearchTerm("")}
+                      onClick={() => {
+                        setSearchTerm("");
+                        setDebouncedSearchTerm("");
+                      }}
                       className="bg-leafy-green-900 text-white px-6 py-2 rounded hover:border hover:border-golden-yellow transition-all"
                     >
                       Clear Search

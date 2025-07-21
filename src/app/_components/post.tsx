@@ -2,19 +2,30 @@
 
 import { useState } from "react";
 
-import { api } from "~/trpc/react";
+// NOTE: This component previously used tRPC but has been simplified
+// Replace with actual Convex queries/mutations or remove entirely if not needed
 
 export function LatestPost() {
-  const [latestPost] = api.post.getLatest.useSuspenseQuery();
-
-  const utils = api.useUtils();
   const [name, setName] = useState("");
-  const createPost = api.post.create.useMutation({
-    onSuccess: async () => {
-      await utils.post.invalidate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [latestPost, setLatestPost] = useState<{ name: string } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    
+    setIsSubmitting(true);
+    try {
+      // Replace with actual Convex mutation or API call
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      setLatestPost({ name });
       setName("");
-    },
-  });
+    } catch (error) {
+      console.error("Failed to create post:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-xs">
@@ -23,13 +34,7 @@ export function LatestPost() {
       ) : (
         <p>You have no posts yet.</p>
       )}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          createPost.mutate({ name });
-        }}
-        className="flex flex-col gap-2"
-      >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
         <input
           type="text"
           placeholder="Title"
@@ -40,9 +45,9 @@ export function LatestPost() {
         <button
           type="submit"
           className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
-          disabled={createPost.isPending}
+          disabled={isSubmitting}
         >
-          {createPost.isPending ? "Submitting..." : "Submit"}
+          {isSubmitting ? "Submitting..." : "Submit"}
         </button>
       </form>
     </div>

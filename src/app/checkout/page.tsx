@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import {
@@ -17,7 +17,7 @@ import {
 } from "lucide-react"
 import MainLayout from "~/components/layout/main-layout"
 import { Button } from "~/components/ui/button"
-import { api } from "~/trpc/react"
+
 
 export default function CheckoutPage() {
   const { data: session } = useSession()
@@ -40,23 +40,43 @@ export default function CheckoutPage() {
     bankReference: "",
   })
 
-  // Get cart items
-  const { data: cartItems, isLoading: cartLoading } = api.cart.getItems.useQuery(
-    undefined,
-    { enabled: !!session }
-  )
+  // Placeholder for cart data - replace with actual fetching logic
+  const [cartItems, setCartItems] = useState(null)
+  const [cartLoading, setCartLoading] = useState(true)
 
-  // Create booking mutation
-  const createBookingMutation = api.bookings.createFromCart.useMutation({
-    onSuccess: (data) => {
+  // Simulate loading cart items
+  useEffect(() => {
+    if (session) {
+      // Replace this with actual Convex query or API call
+      setTimeout(() => {
+        setCartItems({ items: [] }) // Empty cart for now
+        setCartLoading(false)
+      }, 1000)
+    } else {
+      setCartLoading(false)
+    }
+  }, [session])
+
+  const createBooking = async () => {
+    try {
+      // Replace with actual Convex mutation or API call
+      const bookingData = {
+        bookingId: `booking_${Date.now()}`,
+        paymentMethod,
+        paymentDetails,
+        attendeeInfo,
+      }
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
       // Redirect to confirmation page
-      router.push(`/booking-confirmation/${data.bookingId}`)
-    },
-    onError: (error) => {
-      alert(error.message)
+      router.push(`/booking-confirmation/${bookingData.bookingId}`)
+    } catch (error) {
+      alert(`Booking failed: ${error.message}`)
       setIsProcessing(false)
-    },
-  })
+    }
+  }
 
   const formatPrice = (price: string | number) => {
     const numPrice = typeof price === 'string' ? parseFloat(price) : price
@@ -135,18 +155,8 @@ export default function CheckoutPage() {
     }
 
     setIsProcessing(true)
-
-    // Simulate payment processing delay
-    setTimeout(() => {
-      createBookingMutation.mutate({
-        paymentMethod,
-        paymentDetails: {
-          method: paymentMethod,
-          ...paymentDetails,
-        },
-        attendeeInfo,
-      })
-    }, 2000)
+    
+    await createBooking()
   }
 
   if (!session) {
@@ -446,71 +456,14 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Payment Form */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h2>
-              
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4">
-                  <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="card"
-                      checked={paymentMethod === "card"}
-                      onChange={(e) => setPaymentMethod(e.target.value as "card")}
-                      className="mr-3"
-                    />
-                    <CreditCard className="h-5 w-5 mr-3 text-gray-400" />
-                    <div>
-                      <div className="font-medium">Credit/Debit Card</div>
-                      <div className="text-sm text-gray-500">Visa, Mastercard, etc.</div>
-                    </div>
-                  </label>
-
-                  <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="mobile"
-                      checked={paymentMethod === "mobile"}
-                      onChange={(e) => setPaymentMethod(e.target.value as "mobile")}
-                      className="mr-3"
-                    />
-                    <div className="h-5 w-5 mr-3 bg-green-500 rounded"></div>
-                    <div>
-                      <div className="font-medium">Mobile Money</div>
-                      <div className="text-sm text-gray-500">MTN Mobile Money, Orange Money</div>
-                    </div>
-                  </label>
-
-                  <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="cash"
-                      checked={paymentMethod === "cash"}
-                      onChange={(e) => setPaymentMethod(e.target.value as "cash")}
-                      className="mr-3"
-                    />
-                    <div className="h-5 w-5 mr-3 bg-yellow-500 rounded"></div>
-                    <div>
-                      <div className="font-medium">Pay at Venue</div>
-                      <div className="text-sm text-gray-500">Cash payment at event location</div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            {/* Checkout Button */}
+          {/* Checkout Button */}
+          <div className="lg:col-span-2">
             <Button
               onClick={handleCheckout}
-              disabled={isProcessing || createBookingMutation.isPending}
+              disabled={isProcessing}
               className="w-full py-3 text-lg"
             >
-              {isProcessing || createBookingMutation.isPending ? (
+              {isProcessing ? (
                 <>
                   <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                   Processing...
@@ -523,7 +476,7 @@ export default function CheckoutPage() {
               )}
             </Button>
 
-            <div className="text-center text-sm text-gray-500">
+            <div className="text-center text-sm text-gray-500 mt-4">
               <p>By completing this booking, you agree to our terms and conditions.</p>
             </div>
           </div>

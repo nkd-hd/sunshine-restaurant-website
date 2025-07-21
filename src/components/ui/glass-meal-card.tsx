@@ -1,10 +1,13 @@
 "use client"
 
 import { ChefHat } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
+import { memo, useMemo } from "react"
 import { Button } from "./button"
 import { cn } from "~/lib/utils"
+import { imageOptimization } from "~/lib/performance"
 
 interface GlassMealCardProps {
   meal: {
@@ -19,25 +22,37 @@ interface GlassMealCardProps {
   onAddToCart?: (mealId: string) => void
 }
 
-export function GlassMealCard({ meal, className, onAddToCart }: GlassMealCardProps) {
+// Memoized meal card component for better performance
+export const GlassMealCard = memo(function GlassMealCard({ meal, className, onAddToCart }: GlassMealCardProps) {
   const { data: session } = useSession()
 
-  const formatPrice = (price: number) => {
-    return `${price.toLocaleString()} XAF`
-  }
+  // Memoize formatted price to avoid recalculation
+  const formattedPrice = useMemo(() => {
+    return `${meal.price.toLocaleString()} XAF`
+  }, [meal.price])
+
+  // Memoize image optimization props
+  const imageProps = useMemo(() => {
+    if (!meal.imageUrl) return null
+    return imageOptimization.getOptimizedImageProps(meal.imageUrl, meal.name)
+  }, [meal.imageUrl, meal.name])
 
   return (
     <div className={cn(
       "glass-card p-4 sm:p-6 w-full",
+      // Mobile-specific optimizations
+      "transform-gpu will-change-transform",
       className
     )}>
-      {/* Image Container - Clean placeholder */}
+      {/* Image Container - Optimized with Next.js Image */}
       <div className="aspect-square bg-black/10 overflow-hidden mb-4 relative rounded-lg">
-        {meal.imageUrl ? (
-          <img
-            src={meal.imageUrl}
-            alt={meal.name}
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+        {meal.imageUrl && imageProps ? (
+          <Image
+            {...imageProps}
+            fill
+            className="object-cover transition-transform duration-300 hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={false} // Lazy load for better initial page performance
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-wooden-brown/20 to-transparent text-wooden-brown/60 rounded-lg">
@@ -74,7 +89,7 @@ export function GlassMealCard({ meal, className, onAddToCart }: GlassMealCardPro
         <div className="flex items-center justify-between pt-2">
           {/* Price - Yellow accent, more prominent */}
           <div className="text-golden-yellow-600 font-bold text-lg sm:text-xl">
-            {formatPrice(meal.price)}
+            {formattedPrice}
           </div>
           
           {/* Enhanced Add Button */}
@@ -104,4 +119,4 @@ export function GlassMealCard({ meal, className, onAddToCart }: GlassMealCardPro
       </div>
     </div>
   )
-}
+})

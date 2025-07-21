@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Eye, EyeOff, UserPlus } from "lucide-react"
 import { Button } from "~/components/ui/button"
-import { api } from "~/trpc/react"
+// Using NextAuth for signup - redirect to signin for account creation
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -20,14 +20,7 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const createUserMutation = api.auth.register.useMutation({
-    onSuccess: () => {
-      router.push("/auth/signin?message=Account created successfully. Please sign in.")
-    },
-    onError: (error) => {
-      setErrors({ submit: error.message })
-    },
-  })
+  // For now, redirect to signin - signup will be handled through NextAuth providers or admin
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -59,15 +52,8 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!validateForm()) {
-      return
-    }
-
-    createUserMutation.mutate({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-    })
+    // For now, redirect to signin page with a message
+    router.push("/auth/signin?message=Please contact admin for account creation.")
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,10 +218,9 @@ export default function SignUpPage() {
           <div>
             <Button
               type="submit"
-              disabled={createUserMutation.isPending}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              {createUserMutation.isPending ? "Creating account..." : "Create account"}
+              Request Account
             </Button>
           </div>
 

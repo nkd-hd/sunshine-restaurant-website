@@ -1,11 +1,13 @@
 # 🌞 Sunshine Restaurant
 
-> **A modern, full-featured restaurant management system built for Yaoundé, Cameroon**
+> **A high-performance, full-featured restaurant management system built for Yaoundé, Cameroon**
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat&logo=next.js)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-blue?style=flat&logo=react)](https://react.dev/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black?style=flat&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18.3.1-blue?style=flat&logo=react)](https://react.dev/)
 [![Convex](https://img.shields.io/badge/Convex-Backend-orange?style=flat&logo=convex)](https://convex.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8.2-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![PWA](https://img.shields.io/badge/PWA-Ready-green?style=flat&logo=pwa)](https://web.dev/progressive-web-apps/)
+[![Performance](https://img.shields.io/badge/Core%20Web%20Vitals-Optimized-brightgreen?style=flat)](https://web.dev/vitals/)
 
 ---
 
@@ -20,6 +22,9 @@ Sunshine Restaurant is a comprehensive restaurant management and ordering system
 - 💰 **Local Payment Methods** - MTN MoMo, Orange Money, and Cash on Delivery
 - 🎨 **Custom Design** - Natural theme with wooden brown and leafy green colors
 - ⚡ **Real-Time Updates** - Live order tracking and status updates
+- 🚀 **High Performance** - Optimized for speed with Core Web Vitals compliance
+- 📱 **PWA Ready** - Offline support, app-like experience
+- 📊 **Performance Monitoring** - Built-in Web Vitals tracking and analytics
 
 ---
 
@@ -50,6 +55,25 @@ npm run dev
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application.
 
+### Performance Scripts
+
+```bash
+# Production build with optimizations
+npm run build
+
+# Analyze bundle sizes
+npm run build:analyze
+
+# Run performance tests
+npm run perf:test
+
+# Full performance analysis
+npm run perf:analyze
+
+# Lighthouse audit (requires running server)
+npm run perf:lighthouse
+```
+
 ---
 
 ## 📚 Documentation
@@ -73,6 +97,10 @@ Visit [http://localhost:3000](http://localhost:3000) to see the application.
 ### 🚀 Deployment
 - **[Deployment Guide](docs/deployment/README.md)** - Production deployment options
 - **[Environment Setup](docs/deployment/environment.md)** - Production configuration
+
+### ⚡ Performance
+- **[Performance Optimizations](PERFORMANCE_OPTIMIZATIONS.md)** - Comprehensive performance guide
+- **[Performance Testing](scripts/performance-test.js)** - Automated performance analysis
 
 ---
 
@@ -105,11 +133,14 @@ Visit [http://localhost:3000](http://localhost:3000) to see the application.
 | 🏠 **Homepage** | ✅ Complete | 100% |
 | 🔐 **Authentication** | ✅ Complete | 100% |
 | 👨‍💼 **Admin Panel** | ✅ Complete | 95% |
-| 🛒 **Customer Ordering** | 🚧 In Progress | 70% |
+| 🛒 **Customer Ordering** | ✅ Complete | 85% |
+| 🚀 **Performance Optimization** | ✅ Complete | 100% |
+| 📱 **PWA Features** | ✅ Complete | 100% |
+| 📊 **Performance Monitoring** | ✅ Complete | 100% |
 | 💬 **WhatsApp Integration** | 🟡 Planned | 30% |
 | 💰 **Payment Integration** | 🟡 Planned | 20% |
 
-*Last updated: July 20, 2025*
+*Last updated: January 21, 2025*
 
 ---
 

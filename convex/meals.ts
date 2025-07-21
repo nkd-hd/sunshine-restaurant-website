@@ -1,34 +1,71 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Get all meals with optional filtering
+// Get all meals with optional filtering - Optimized with pagination and indexing
 export const getAllMeals = query({
   args: {
     categoryId: v.optional(v.id("mealCategories")),
     isAvailable: v.optional(v.literal("AVAILABLE")),
     isFeatured: v.optional(v.literal("YES")),
     limit: v.optional(v.number()),
+    cursor: v.optional(v.string()), // For pagination
+    searchTerm: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const limit = Math.min(args.limit ?? 24, 100); // Max 100 items per request
+    
     let query = ctx.db.query("meals");
 
-    if (args.categoryId) {
-      query = query.filter((q) => q.eq(q.field("categoryId"), args.categoryId));
+    // Use indexes for better performance
+    if (args.categoryId && args.isAvailable) {
+      // Use composite index if available
+      query = query.withIndex("by_category", (q) => q.eq("categoryId", args.categoryId))
+                   .filter((q) => q.eq(q.field("isAvailable"), args.isAvailable));
+    } else if (args.categoryId) {
+      query = query.withIndex("by_category", (q) => q.eq("categoryId", args.categoryId));
+    } else if (args.isAvailable) {
+      query = query.withIndex("by_availability", (q) => q.eq("isAvailable", args.isAvailable));
+    } else if (args.isFeatured) {
+      query = query.withIndex("by_featured", (q) => q.eq("isFeatured", args.isFeatured));
     }
 
-    if (args.isAvailable) {
+    // Apply additional filters
+    if (args.isAvailable && !args.categoryId) {
       query = query.filter((q) => q.eq(q.field("isAvailable"), args.isAvailable));
     }
 
-    if (args.isFeatured) {
+    if (args.isFeatured && !query.constructor.name.includes('IndexRange')) {
       query = query.filter((q) => q.eq(q.field("isFeatured"), args.isFeatured));
     }
 
-    if (args.limit) {
-      query = query.take(args.limit);
+    // Order by display order for consistent results
+    query = query.order("desc");
+
+    // Apply pagination cursor
+    if (args.cursor) {
+      query = query.filter((q) => q.lt(q.field("_creationTime"), parseInt(args.cursor!)));
     }
 
-    return query.order("desc").collect();
+    const meals = await query.take(limit + 1); // Take one extra to check if there are more
+    const hasMore = meals.length > limit;
+    const results = hasMore ? meals.slice(0, limit) : meals;
+
+    // Client-side search filtering if needed (for small datasets)
+    let filteredResults = results;
+    if (args.searchTerm) {
+      const searchLower = args.searchTerm.toLowerCase();
+      filteredResults = results.filter(meal => 
+        meal.name.toLowerCase().includes(searchLower) ||
+        (meal.description && meal.description.toLowerCase().includes(searchLower)) ||
+        (meal.ingredients && meal.ingredients.toLowerCase().includes(searchLower))
+      );
+    }
+
+    return {
+      meals: filteredResults,
+      hasMore,
+      nextCursor: hasMore ? results[results.length - 1]._creationTime.toString() : null,
+    };
   },
 });
 
