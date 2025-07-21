@@ -12,6 +12,17 @@ const config = {
   // External packages for server components
   serverExternalPackages: ['mysql2'],
 
+  // Webpack configuration for React compatibility
+  webpack: (config) => {
+    // Resolve react to a single version to avoid version conflicts
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react': 'react',
+      'react-dom': 'react-dom',
+    };
+    return config;
+  },
+
   // Disable TypeScript errors during build for now
   typescript: {
     ignoreBuildErrors: true,

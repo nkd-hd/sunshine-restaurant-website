@@ -1,238 +1,202 @@
 "use client"
 
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import {
+import { useQuery } from "convex/react"
+import { api } from "../../../convex/_generated/api"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { 
+  UtensilsCrossed, 
+  ShoppingCart, 
+  DollarSign, 
+  TrendingUp, 
   Users,
-  Calendar,
-  BookOpen,
-  DollarSign,
-  TrendingUp,
   Clock,
+  Star,
+  AlertCircle
 } from "lucide-react"
-import AdminLayout from "~/components/admin/admin-layout"
-import { api } from "~/trpc/react"
+
+function StatsCard({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  trend,
+}: {
+  title: string
+  value: string | number
+  subtitle: string
+  icon: React.ElementType
+  trend?: "up" | "down" | "neutral"
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className={`text-xs ${
+          trend === "up" ? "text-green-600" : 
+          trend === "down" ? "text-red-600" : 
+          "text-muted-foreground"
+        }`}>
+          {subtitle}
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
 
 export default function AdminDashboard() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-
-  // Redirect if not admin
-  useEffect(() => {
-    if (status === "loading") return
-    if (!session) {
-      router.push("/auth/signin?callbackUrl=/admin")
-      return
-    }
-  }, [session, status, router])
-
-  const { data: stats, isLoading, error } = api.admin.getDashboardStats.useQuery(
-    undefined,
-    { enabled: !!session }
-  )
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("fr-CM", {
-      style: "currency",
-      currency: "XAF",
-      minimumFractionDigits: 0,
-    }).format(price)
-  }
-
-  if (status === "loading" || isLoading) {
-    return (
-      <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
-        </div>
-      </AdminLayout>
-    )
-  }
-
-  if (error) {
-    return (
-      <AdminLayout>
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="text-red-800">
-            <h3 className="font-medium">Access Denied</h3>
-            <p className="mt-1 text-sm">
-              {error.message || "You don't have permission to access the admin panel."}
-            </p>
-          </div>
-        </div>
-      </AdminLayout>
-    )
-  }
-
-  if (!stats) {
-    return (
-      <AdminLayout>
-        <div className="text-center py-12">
-          <p className="text-gray-500">No data available</p>
-        </div>
-      </AdminLayout>
-    )
-  }
-
-  const statCards = [
-    {
-      name: "Total Users",
-      value: stats.totalUsers,
-      icon: Users,
-      color: "bg-blue-500",
-      change: "+12%",
-      changeType: "increase",
-    },
-    {
-      name: "Total Events",
-      value: stats.totalEvents,
-      icon: Calendar,
-      color: "bg-green-500",
-      change: "+5%",
-      changeType: "increase",
-    },
-    {
-      name: "Total Bookings",
-      value: stats.totalBookings,
-      icon: BookOpen,
-      color: "bg-purple-500",
-      change: "+18%",
-      changeType: "increase",
-    },
-    {
-      name: "Total Revenue",
-      value: formatPrice(stats.totalRevenue),
-      icon: DollarSign,
-      color: "bg-yellow-500",
-      change: "+25%",
-      changeType: "increase",
-    },
-  ]
-
+  // Get meal statistics
+  const mealStats = useQuery(api.meals.getMealStats)
+  
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {statCards.map((stat) => (
-            <div key={stat.name} className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className={`${stat.color} rounded-md p-3`}>
-                      <stat.icon className="h-6 w-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        {stat.name}
-                      </dt>
-                      <dd className="flex items-baseline">
-                        <div className="text-2xl font-semibold text-gray-900">
-                          {stat.value}
-                        </div>
-                        <div className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                          <TrendingUp className="h-4 w-4 mr-1" />
-                          {stat.change}
-                        </div>
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          🌞 Sunshine Restaurant Dashboard
+        </h1>
+        <p className="text-muted-foreground">
+          Welcome to your restaurant management system
+        </p>
+      </div>
+      
+      {/* Quick Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatsCard
+          title="Total Meals"
+          value={mealStats?.total || 0}
+          subtitle="In your menu"
+          icon={UtensilsCrossed}
+          trend="neutral"
+        />
+        
+        <StatsCard
+          title="Available Meals"
+          value={mealStats?.available || 0}
+          subtitle="Ready to order"
+          icon={TrendingUp}
+          trend="up"
+        />
+        
+        <StatsCard
+          title="Featured Items"
+          value={mealStats?.featured || 0}
+          subtitle="Highlighted meals"
+          icon={Star}
+          trend="neutral"
+        />
+        
+        <StatsCard
+          title="Out of Stock"
+          value={mealStats?.outOfStock || 0}
+          subtitle="Need attention"
+          icon={AlertCircle}
+          trend={mealStats?.outOfStock ? "down" : "neutral"}
+        />
+      </div>
+      
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <UtensilsCrossed className="h-5 w-5 text-leafy-green" />
+              <CardTitle className="text-lg">Meal Management</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Add, edit, and manage your restaurant's meals
+            </p>
+            <div className="flex gap-2">
+              <a 
+                href="/admin/meals/new" 
+                className="inline-flex items-center gap-1 text-sm text-leafy-green hover:text-leafy-green/80"
+              >
+                + Add New Meal
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5 text-wooden-brown" />
+              <CardTitle className="text-lg">Orders</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              View and manage customer orders
+            </p>
+            <div className="flex gap-2">
+              <a 
+                href="/admin/orders" 
+                className="inline-flex items-center gap-1 text-sm text-wooden-brown hover:text-wooden-brown/80"
+              >
+                View Orders →
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-lg">Restaurant Settings</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Configure restaurant information and settings
+            </p>
+            <div className="flex gap-2">
+              <a 
+                href="/admin/settings" 
+                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-600/80"
+              >
+                Manage Settings →
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Status Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>System Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div>
+                <p className="font-medium text-sm">Database</p>
+                <p className="text-xs text-muted-foreground">Connected</p>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* Recent Bookings */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Recent Bookings
-            </h3>
-            {stats.recentBookings.length === 0 ? (
-              <div className="text-center py-8">
-                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No recent bookings</p>
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div>
+                <p className="font-medium text-sm">Menu System</p>
+                <p className="text-xs text-muted-foreground">Operational</p>
               </div>
-            ) : (
-              <div className="overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Reference
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        User
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Event
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Amount
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {stats.recentBookings.map((booking: any) => (
-                      <tr key={booking.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {booking.referenceNumber}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div>
-                            <div className="font-medium text-gray-900">
-                              {booking.user?.name || "Unknown"}
-                            </div>
-                            <div className="text-gray-500">{booking.user?.email}</div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div>
-                            <div className="font-medium text-gray-900">
-                              {booking.event?.name || "Unknown Event"}
-                            </div>
-                            <div className="text-gray-500 flex items-center">
-                              <Clock className="h-4 w-4 mr-1" />
-                              {booking.event?.date?.toLocaleDateString("fr-CM")}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatPrice(parseFloat(booking.totalAmount))}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              booking.status === "CONFIRMED"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {booking.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {booking.createdAt?.toLocaleDateString("fr-CM")}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+              <div>
+                <p className="font-medium text-sm">WhatsApp Integration</p>
+                <p className="text-xs text-muted-foreground">Coming Soon</p>
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      </div>
-    </AdminLayout>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

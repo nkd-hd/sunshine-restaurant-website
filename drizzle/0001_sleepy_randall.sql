@@ -1,1 +1,0 @@
-ALTER TABLE `event-booking-system_event` ADD `category` varchar(100);

@@ -1,144 +1,146 @@
-# Sunshine Restaurant Website
+# 🌞 Sunshine Restaurant
 
-A modern restaurant website with online ordering, delivery management, and WhatsApp integration built with the T3 Stack, featuring real-time order management, user authentication, shopping cart functionality, and seamless customer communication.
+> **A modern, full-featured restaurant management system built for Yaoundé, Cameroon**
 
-## 🚀 Features
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue?style=flat&logo=react)](https://react.dev/)
+[![Convex](https://img.shields.io/badge/Convex-Backend-orange?style=flat&logo=convex)](https://convex.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 
-- **Menu Management**: Browse, search, and filter meals with dietary information
-- **User Authentication**: Secure login with NextAuth.js
-- **Shopping Cart**: Add meals to cart and manage quantities
-- **Order Management**: Complete ordering process with delivery tracking
-- **User Dashboard**: View order history and delivery status
-- **WhatsApp Integration**: Direct communication with restaurant and delivery riders
-- **AI Chatbot**: Google Gemini-powered assistant for menu help and navigation
-- **Responsive Design**: Mobile-first design with Tailwind CSS
-- **Type Safety**: Full TypeScript support with tRPC
+---
 
-## 🛠 Tech Stack
+## 🎯 Project Overview
 
-- **Framework**: [Next.js 15](https://nextjs.org) with App Router
-- **Authentication**: [NextAuth.js](https://next-auth.js.org)
-- **Database**: [Drizzle ORM](https://orm.drizzle.team) with SingleStore/MySQL
-- **Styling**: [Tailwind CSS](https://tailwindcss.com)
-- **API**: [tRPC](https://trpc.io) for type-safe APIs
-- **UI Components**: Custom components with Radix UI primitives
-- **Icons**: [Lucide React](https://lucide.dev)
+Sunshine Restaurant is a comprehensive restaurant management and ordering system designed specifically for the Cameroonian market. It features a beautiful wooden brown and leafy green theme, mobile-first design, and integrated WhatsApp communication for local customers in Yaoundé.
 
-## 📋 Prerequisites
+- 🏪 **Complete Restaurant Management** - Menu, orders, analytics, and settings
+- 🛒 **Customer Ordering System** - Browse menu, add to cart, place orders
+- 📱 **Mobile-Optimized** - Perfect for Yaoundé's mobile-first market
+- 💬 **WhatsApp Integration** - Customer communication and order updates
+- 💰 **Local Payment Methods** - MTN MoMo, Orange Money, and Cash on Delivery
+- 🎨 **Custom Design** - Natural theme with wooden brown and leafy green colors
+- ⚡ **Real-Time Updates** - Live order tracking and status updates
 
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
 - Node.js 18+
-- MySQL database (or SingleStore)
-- npm or yarn package manager
+- npm or yarn
+- Convex account
 
-## 🚀 Getting Started
-
-### 1. Clone and Install
+### Installation
 
 ```bash
-git clone <repository-url>
-cd event-booking-system
+# Clone the repository
+git clone https://github.com/nkd-hd/sunshine-restaurant-website.git
+cd sunshine_restaurant
+
+# Install dependencies
 npm install
-```
 
-### 2. Environment Setup
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
 
-Create a `.env` file in the root directory:
-
-```env
-# Database
-DATABASE_URL="mysql://username:password@host:port/database_name"
-
-# NextAuth
-AUTH_SECRET="your-secret-key-here"
-AUTH_DISCORD_ID="your-discord-client-id" # Optional
-AUTH_DISCORD_SECRET="your-discord-client-secret" # Optional
-
-# Google Gemini API (for chatbot)
-GEMINI_API_KEY="your-gemini-api-key-here"
-```
-
-### 3. Database Setup
-
-```bash
-# Generate and run migrations
-npm run db:generate
-npm run db:migrate
-
-# Test database connection
-npm run db:test
-
-# Seed with sample data
-npm run db:seed
-```
-
-### 4. Start Development Server
-
-```bash
+# Start development server
 npm run dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application.
 
-## 🗄️ Database Schema
+---
 
-The application uses the following main tables:
+## 📚 Documentation
 
-- **users**: User accounts and authentication
-- **events**: Event information and details
-- **bookings**: User bookings and reservations
-- **cart**: Shopping cart items
-- **accounts/sessions**: NextAuth.js authentication tables
+### 🏗️ Core Documentation
+- **[Setup Guide](docs/setup/README.md)** - Complete installation and configuration
+- **[Architecture Overview](docs/architecture/README.md)** - System design and structure
+- **[Development Guide](docs/development/README.md)** - Development workflows and standards
 
-## 📱 API Routes
+### 👨‍💼 For Restaurant Owners
+- **[Admin Guide](docs/admin/README.md)** - Complete admin panel documentation
+- **[Menu Management](docs/admin/menu-management.md)** - Adding and managing meals
+- **[Order Processing](docs/admin/order-management.md)** - Handling customer orders
+- **[Business Analytics](docs/admin/analytics.md)** - Understanding your business data
 
-### Events
-- `GET /api/trpc/events.getAll` - Get all events with filtering
-- `GET /api/trpc/events.getById` - Get event by ID
-- `GET /api/trpc/events.getFeatured` - Get featured events
+### 👩‍💻 For Developers
+- **[API Reference](docs/api/README.md)** - Convex functions and database schema
+- **[Frontend Components](docs/frontend/README.md)** - React components and UI system
+- **[Contributing Guide](docs/development/contributing.md)** - How to contribute to the project
 
-### Cart
-- `GET /api/trpc/cart.getItems` - Get user's cart items
-- `POST /api/trpc/cart.addItem` - Add item to cart
-- `PUT /api/trpc/cart.updateQuantity` - Update item quantity
-- `DELETE /api/trpc/cart.removeItem` - Remove item from cart
+### 🚀 Deployment
+- **[Deployment Guide](docs/deployment/README.md)** - Production deployment options
+- **[Environment Setup](docs/deployment/environment.md)** - Production configuration
 
-### Bookings
-- `GET /api/trpc/bookings.getUserBookings` - Get user's bookings
-- `GET /api/trpc/bookings.getStats` - Get booking statistics
-- `POST /api/trpc/bookings.createFromCart` - Create booking from cart
+---
 
-## 🧪 Testing
+## 🏗️ Tech Stack
 
-```bash
-# Test database connection
-npm run db:test
+### Frontend
+- **[Next.js 15](https://nextjs.org)** - React framework with App Router
+- **[React 19](https://react.dev)** - UI library with latest features
+- **[TypeScript](https://www.typescriptlang.org)** - Type-safe development
+- **[Tailwind CSS](https://tailwindcss.com)** - Utility-first styling
+- **[shadcn/ui](https://ui.shadcn.com)** - High-quality UI components
 
-# Run type checking
-npm run check
+### Backend
+- **[Convex](https://convex.dev)** - Real-time serverless backend
+- **[NextAuth.js](https://next-auth.js.org)** - Authentication system
+- **Database** - Convex's built-in database with real-time sync
 
-# Run linting
-npm run lint
-```
+### External Services
+- **WhatsApp Business API** - Customer communication
+- **MTN MoMo API** - Mobile money payments (Cameroon)
+- **Orange Money API** - Mobile money payments (Cameroon)
+- **Google Maps API** - Location and delivery services
 
-## 📦 Available Scripts
+---
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run db:generate` - Generate database migrations
-- `npm run db:migrate` - Run database migrations
-- `npm run db:seed` - Seed database with sample data
-- `npm run db:test` - Test database connection
-- `npm run db:studio` - Open Drizzle Studio
+## 📊 Project Status
 
-## 🚀 Deployment
+| Component | Status | Progress |
+|-----------|--------|----------|
+| 🏠 **Homepage** | ✅ Complete | 100% |
+| 🔐 **Authentication** | ✅ Complete | 100% |
+| 👨‍💼 **Admin Panel** | ✅ Complete | 95% |
+| 🛒 **Customer Ordering** | 🚧 In Progress | 70% |
+| 💬 **WhatsApp Integration** | 🟡 Planned | 30% |
+| 💰 **Payment Integration** | 🟡 Planned | 20% |
 
-The application is configured for deployment on Netlify. See the deployment guide in the project documentation.
+*Last updated: July 20, 2025*
 
-## 📚 Learn More
+---
 
-- [T3 Stack Documentation](https://create.t3.gg/)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Drizzle ORM Documentation](https://orm.drizzle.team)
-- [tRPC Documentation](https://trpc.io/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](docs/development/contributing.md) for details on:
+- Code style and standards
+- Development workflow
+- Testing requirements
+- Submission process
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🆘 Support
+
+- 📖 **Documentation**: Check our [docs](docs/) folder
+- 🐛 **Bug Reports**: [Create an issue](https://github.com/nkd-hd/sunshine-restaurant-website/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/nkd-hd/sunshine-restaurant-website/discussions)
+
+---
+
+## 🏆 Acknowledgments
+
+Built with ❤️ for the Cameroonian restaurant industry, focusing on local needs and mobile-first experiences.
+
+---
+
+**🌟 Sunshine Restaurant - Bringing the warmth of Cameroonian cuisine to the digital world!**

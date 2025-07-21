@@ -1,19 +1,24 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public routes that don't require authentication
   const publicRoutes = [
     "/",
-    "/events",
+    "/menu",
+    "/about",
+    "/contact",
     "/auth/signin",
     "/auth/signup",
     "/api/auth",
     "/api/trpc",
+    "/api/upload",
     "/_next",
     "/favicon.ico",
+    "/uploads",
   ]
 
   // Check if the current path is public
@@ -26,8 +31,23 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // For protected routes, we'll let the page components handle authentication
-  // since NextAuth middleware has changed in newer versions
+  // Admin routes require ADMIN role
+  if (pathname.startsWith("/admin")) {
+    const token = await getToken({ req: request })
+    
+    // Redirect to login if not authenticated
+    if (!token) {
+      const loginUrl = new URL("/auth/signin", request.url)
+      loginUrl.searchParams.set("callbackUrl", pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+    
+    // Redirect to home if not admin
+    if (token.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/", request.url))
+    }
+  }
+
   return NextResponse.next()
 }
 

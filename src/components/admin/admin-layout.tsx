@@ -6,16 +6,17 @@ import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import {
   BarChart3,
-  Calendar,
+  UtensilsCrossed,
   Users,
-  BookOpen,
+  ShoppingCart,
   FileText,
-  Database,
+  FolderTree,
   Menu,
   X,
   LogOut,
   Home,
   Settings,
+  ChefHat,
 } from "lucide-react"
 
 interface AdminLayoutProps {
@@ -24,11 +25,12 @@ interface AdminLayoutProps {
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: BarChart3 },
-  { name: "Events", href: "/admin/events", icon: Calendar },
+  { name: "Meals", href: "/admin/meals", icon: UtensilsCrossed },
+  { name: "Categories", href: "/admin/categories", icon: FolderTree },
+  { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { name: "Analytics", href: "/admin/analytics", icon: FileText },
   { name: "Users", href: "/admin/users", icon: Users },
-  { name: "Bookings", href: "/admin/bookings", icon: BookOpen },
-  { name: "Reports", href: "/admin/reports", icon: FileText },
-  { name: "Database", href: "/admin/database", icon: Database },
+  { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
@@ -53,7 +55,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
           <div className="h-0 flex-1 overflow-y-auto pt-5 pb-4">
             <div className="flex flex-shrink-0 items-center px-4">
-              <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
+              <div className="flex items-center gap-2">
+                <ChefHat className="h-6 w-6 text-leafy-green" />
+                <h1 className="text-xl font-bold text-gray-900">Sunshine Admin</h1>
+              </div>
             </div>
             <nav className="mt-5 space-y-1 px-2">
               {navigation.map((item) => {
@@ -64,8 +69,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     href={item.href}
                     className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
                       isActive
-                        ? "bg-blue-100 text-blue-900"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        ? "bg-leafy-green text-white"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-leafy-green"
                     }`}
                   >
                     <item.icon className="mr-4 h-6 w-6" />
@@ -83,7 +88,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-gray-200">
           <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
             <div className="flex flex-shrink-0 items-center px-4">
-              <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
+              <div className="flex items-center gap-2">
+                <ChefHat className="h-6 w-6 text-leafy-green" />
+                <h1 className="text-xl font-bold text-gray-900">Sunshine Admin</h1>
+              </div>
             </div>
             <nav className="mt-5 flex-1 space-y-1 px-2">
               {navigation.map((item) => {
@@ -94,8 +102,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     href={item.href}
                     className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                       isActive
-                        ? "bg-blue-100 text-blue-900"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        ? "bg-leafy-green text-white"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-leafy-green"
                     }`}
                   >
                     <item.icon className="mr-3 h-5 w-5" />

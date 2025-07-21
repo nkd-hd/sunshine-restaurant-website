@@ -4,7 +4,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 
-import { TRPCReactProvider } from "~/trpc/react";
+import { ConvexClientProvider } from "~/providers/ConvexProvider";
 
 export const metadata: Metadata = {
   title: "Sunshine Restaurant - Order Online | Yaoundé Delivery",
@@ -23,9 +23,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>
-        <SessionProvider>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
-        </SessionProvider>
+        <ConvexClientProvider>
+          <SessionProvider>
+            {children}
+          </SessionProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );

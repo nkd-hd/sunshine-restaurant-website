@@ -1,1 +1,0 @@
-ALTER TABLE `event-booking-system_booking` MODIFY COLUMN `paymentMethod` enum('MTN_MOMO','ORANGE_MONEY','CASH');

@@ -5,7 +5,9 @@ import { useSession } from "next-auth/react"
 import { User, Mail, Lock, Save } from "lucide-react"
 import MainLayout from "~/components/layout/main-layout"
 import { Button } from "~/components/ui/button"
-import { api } from "~/trpc/react"
+// TODO: Add Convex imports when auth functions are implemented
+// import { useQuery, useMutation } from "convex/react"
+// import { api } from "../../../convex/_generated/api"
 
 export default function ProfilePage() {
   const { data: session, update } = useSession()
@@ -25,37 +27,36 @@ export default function ProfilePage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Fetch user profile
-  const { data: profile, isLoading } = api.auth.getProfile.useQuery(undefined, {
-    enabled: !!session,
-  })
+  // For now, let's use session data instead of separate profile fetch
+  // TODO: Implement Convex profile queries when auth functions are available
+  const profile = session?.user
+  const isLoading = false
 
   // Update profile data when profile is loaded
   useEffect(() => {
     if (profile) {
       setProfileData({
-        name: (profile as any).name || "",
-        email: (profile as any).email || "",
+        name: profile.name || "",
+        email: profile.email || "",
       })
     }
   }, [profile])
 
-  // Update profile mutation
-  const updateProfileMutation = api.auth.updateProfile.useMutation({
-    onSuccess: () => {
+  // TODO: Implement Convex mutations when auth functions are available
+  const updateProfileMutation = {
+    mutate: (data: typeof profileData) => {
+      // Placeholder - implement with Convex when ready
+      console.log('Update profile:', data)
       setIsEditing(false)
       setErrors({})
-      // Update session
-      update()
     },
-    onError: (error) => {
-      setErrors({ submit: error.message })
-    },
-  })
+    isPending: false
+  }
 
-  // Change password mutation
-  const changePasswordMutation = api.auth.changePassword.useMutation({
-    onSuccess: () => {
+  const changePasswordMutation = {
+    mutate: (data: { currentPassword: string; newPassword: string }) => {
+      // Placeholder - implement with Convex when ready
+      console.log('Change password:', data)
       setShowPasswordForm(false)
       setPasswordData({
         currentPassword: "",
@@ -64,10 +65,8 @@ export default function ProfilePage() {
       })
       setErrors({})
     },
-    onError: (error) => {
-      setErrors({ password: error.message })
-    },
-  })
+    isPending: false
+  }
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault()

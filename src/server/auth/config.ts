@@ -1,16 +1,9 @@
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { eq } from "drizzle-orm";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "../../../convex/_generated/api";
 
 import { env } from "~/env";
-import { db } from "~/server/db";
-import {
-  accounts,
-  sessions,
-  users,
-  verificationTokens,
-} from "~/server/db/schema";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -47,49 +40,51 @@ export const authConfig = {
           return null;
         }
 
-        if (!db) {
-          console.log("Database not available, using demo authentication");
-          // Demo user for testing without database
+        try {
+          // Create Convex client for authentication
+          const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || "http://127.0.0.1:3210";
+          const client = new ConvexHttpClient(convexUrl);
+          
+          // Authenticate user via Convex
+          const user = await client.query(api.auth.authenticateUser, {
+            email: credentials.email as string,
+            password: credentials.password as string,
+          });
+
+          if (!user) {
+            // Fallback to demo authentication if Convex authentication fails
+            if (credentials.email === "demo@example.com" && credentials.password === "demo123") {
+              return {
+                id: "demo-user-id",
+                email: "demo@example.com",
+                name: "Demo User",
+                image: null,
+                role: "USER",
+              };
+            }
+            return null;
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            role: user.role || undefined,
+          };
+        } catch (error) {
+          console.error("Convex authentication error:", error);
+          
+          // Fallback to demo authentication on error
           if (credentials.email === "demo@example.com" && credentials.password === "demo123") {
             return {
               id: "demo-user-id",
               email: "demo@example.com",
               name: "Demo User",
               image: null,
+              role: "USER",
             };
           }
-          return null;
-        }
-
-        try {
-          // Find user by email
-          const user = await db
-            .select()
-            .from(users)
-            .where(eq(users.email, credentials.email as string))
-            .limit(1);
-
-          if (!user[0]) {
-            return null;
-          }
-
-          // Verify password (for now, we'll add bcrypt later)
-          // TODO: Replace with bcrypt.compare when bcryptjs is installed
-          const isPasswordValid = user[0].password === credentials.password;
-
-          if (!isPasswordValid) {
-            return null;
-          }
-
-          return {
-            id: user[0].id,
-            email: user[0].email,
-            name: user[0].name,
-            image: user[0].image,
-            role: user[0].role || undefined,
-          };
-        } catch (error) {
-          console.error("Authentication error:", error);
           return null;
         }
       },
